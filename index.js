@@ -8,7 +8,7 @@ const readFile = util.promisify(fs.readFile)
 const mkdir = util.promisify(fs.mkdir)
 
 async function getfile() {
-    fs.readdir(process.argv[2], async function (err, files) {
+    fs.readdir(process.argv[3], async function (err, files) {
         if (err) throw new Error('ydk files not founded')
         console.log('ydk files founded')
         downloadDecksByPaths(files)
@@ -38,7 +38,7 @@ async function createDirectories(path) {
 }
 
 async function getYdkIds(file) {
-    const ydkPath = await readFile(`${process.argv[2]}/${file}`)
+    const ydkPath = await readFile(`${process.argv[3]}/${file}`)
     const arr = ydkPath.toString().split('\n')
 
     const ydks = arr.reduce((ydkArr, currentPath) => {
@@ -67,14 +67,25 @@ async function downloadPictureById(id, number, directoryPath) {
     const name = json.data.data[0].name
     const picturePath = `${directoryPath}/${number}_${name.replace(/[^a-zA-Z0-9]/g, '')}.jpg`
 
-    const picture = await Jimp.read(pictureUrl)
-        .catch(err => {
-            console.error(err)
-        })
-    picture
-        .contain(2100, 2000)
-        .contain(2000, 2300)
-        .write(picturePath)
+    switch (process.argv[2]) {
+        case '-d':
+            https.get(pictureUrl, (picture) => {
+                const file = fs.createWriteStream(picturePath)
+                picture.pipe(file)
+            })
+            break
+        case '-c':
+            const picture = await Jimp.read(pictureUrl)
+                .catch(err => {
+                    console.error(err)
+                })
+            picture
+                .contain(picture.bitmap.width * 1.2, picture.bitmap.height)
+                .contain(picture.bitmap.width, picture.bitmap.height * 1.3)
+                .write(picturePath)
+            break
+    }
+
     console.log(picturePath)
 }
 
