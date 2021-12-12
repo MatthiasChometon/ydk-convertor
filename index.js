@@ -5,7 +5,6 @@ const axios = require('axios')
 var Jimp = require('jimp')
 
 const readFile = util.promisify(fs.readFile)
-const mkdir = util.promisify(fs.mkdir)
 
 async function getfile() {
     fs.readdir(process.argv[3], async function (err, files) {
@@ -61,23 +60,22 @@ async function downloadPictureById(id, number, directoryPath) {
     if (json.status === undefined) return
     const pictureUrl = json.data.data[0].card_images[0].image_url
     const name = json.data.data[0].name
-    const picturePath = `decks/${directoryPath}/${number}_${name.replace(/[^a-zA-Z0-9]/g, '')}.jpg`
+    const picturePath = `${process.argv[3]}/decks/${directoryPath}/${number}_${name.replace(/[^a-zA-Z0-9]/g, '')}.jpg`
+    let error = false
+
+    const picture = await Jimp.read(pictureUrl)
+        .catch(() => error = true)
 
     switch (process.argv[2]) {
         case '-d':
-            https.get(pictureUrl, (picture) => {
-                const file = fs.createWriteStream(picturePath)
-                picture.pipe(file)
-            })
+            if (!error) picture.write(picturePath)
             break
         case '-c':
-            let error = false
-            const picture = await Jimp.read(pictureUrl)
-                .catch(() => error = true)
             if (!error) {
                 picture
-                    .contain(picture.bitmap.width * 1.2, picture.bitmap.height)
-                    .contain(picture.bitmap.width, picture.bitmap.height * 1.3)
+                    .resize(picture.bitmap.width, picture.bitmap.height * 1.07)
+                    .contain(picture.bitmap.width * 1.11, picture.bitmap.height)
+                    .contain(picture.bitmap.width, picture.bitmap.height * 1.28)
                     .write(picturePath)
             }
             break
