@@ -1,7 +1,7 @@
 # ydk-convertor
 
 - convert folder with .ydk (yugioh decks) to pictures folders
-- the name format is : "NUMBER_OF_CARD_IN_DECK"_"CARD_NAME"
+The name format is : "NUMBER_OF_CARD_IN_DECK"_"CARD_NAME"
 
 ## Requirements
 
